@@ -26,6 +26,11 @@ namespace Player
 	{
 		player_view = new PlayerView();
 		player_model = new PlayerModel();
+		elapsed_fire_duration = player_model->fire_cooldown_duration;
+		elapsed_shield_duration = player_model->shiled_powerup_duration;
+		elapsed_tripple_laser_duration = player_model->tripple_laser_powerup_duration;
+		elapsed_freez_duration = player_model->freez_duration;
+		elapsed_rapid_fire_duration = player_model->rapid_fire_cooldown_duration;
 	}
 
 	PlayerController::~PlayerController()
@@ -200,10 +205,43 @@ namespace Player
 		if (event_service->pressedRightArrowKey() || event_service->pressedDKey()) 
 			moveRight();
 
-		//if (event_service->pressedLeftMouseButton()) 
-		//	processBulletFire();
+		if (event_service->pressedLeftMouseButton()) 
+			processBulletFire();
+	}
+	void PlayerController::processBulletFire() {
+		//player to be alive if bullet is fired
+		if (player_model->getPlayerState() != PlayerState::ALIVE) {
+			return;
+		}
+		
+		float deltaTime = ServiceLocator::getInstance()->getTimeService()->getDeltaTime();
+		elapsed_fire_duration -= deltaTime;
+		if (elapsed_fire_duration > 0) {
+			return; // Still cooling down, no firing possible
+		}
+
+		if (player_model->isRapidFireEnabled()) {
+			elapsed_fire_duration = player_model->rapid_fire_cooldown_duration;
+		}
+		else {
+			elapsed_fire_duration = player_model->fire_cooldown_duration;
+		}
+
+		if (player_model->isTrippleLaserEnabled()) {
+			fireBullet(player_model->getPlayerPosition() - sf::Vector2f(-10, 0)); // Left bullet
+			fireBullet(player_model->getPlayerPosition()); // Middle bullet
+			fireBullet(player_model->getPlayerPosition() + sf::Vector2f(10, 0)); // Right bullet
+		}
+		else {
+			fireBullet(player_model->getPlayerPosition()); // Normal single bullet
+		}
+		increaseBulletsFired(1);
 	}
 
+	void PlayerController::fireBullet(sf::Vector2f position)
+	{
+		ServiceLocator::getInstance()->getSoundService()->playSound(SoundType::BULLET_FIRE);
+	}
 	void PlayerController::moveLeft()
 	{
 		sf::Vector2f currentPosition = player_model->getPlayerPosition();

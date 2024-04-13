@@ -2,18 +2,19 @@
 #include <SFML/Graphics.hpp>
 #include "../Collision/ICollider.h"
 #include "../../header/Powerup/PowerupConfig.h"
-#include "../../header/Player/PlayerModel.h"
-#include "../../header/Player/PlayerView.h"
+#include "PlayerModel.h"
+#include "PlayerView.h"
 
 namespace Player
 {
+    class PlayerView;
+    class PlayerModel;
     class PlayerController : public Collision::ICollider
     {
     private:
         float elapsed_shield_duration;
         float elapsed_rapid_fire_duration;
         float elapsed_tripple_laser_duration;
-
         float elapsed_fire_duration;
         float elapsed_freez_duration;
 
@@ -24,14 +25,16 @@ namespace Player
         void moveLeft();
         void moveRight();
 
+        void fireBullet(sf::Vector2f position);
+        void processBulletFire();
         bool processPowerupCollision(ICollider* other_collider);
         bool processEnemyCollision(ICollider* other_collider);
         void updateFreezDuration();
         void freezPlayer();
         void updatePowerupDuration();
-       
-        void disableShield();   
-        void disableRapidFire();    
+
+        void disableShield();
+        void disableRapidFire();
         void disableTrippleLaser();
 
         void saveHighScore();
@@ -51,7 +54,7 @@ namespace Player
         inline void decreaseScore(int val) { PlayerModel::player_score -= val; }
         inline void increaseEnemiesKilled(int val) { PlayerModel::enemies_killed += val; }
         inline void increaseBulletsFired(int val) { PlayerModel::bullets_fired += val; }
-        
+
         void enableShield();
         void enableRapidFire();
         void enableTrippleLaser();
